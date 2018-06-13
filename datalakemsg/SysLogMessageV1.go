@@ -2,7 +2,7 @@ package datalakemsg
 
 //SyslogMessageV1 - structure for Version 1 of messages
 type SyslogMessageV1 struct {
-	logV1
+	LogMessage
 }
 
 // NewSyslogV1 - creates a new Syslog V1 message
