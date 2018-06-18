@@ -1,0 +1,5 @@
+{
+	"ConnTcpPort" : "localhost:9000",
+	"ConnUdpPort" : "localhost:9000",
+	"RestURL": "http://localhost:8080/v1/syslog"
+}
