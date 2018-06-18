@@ -54,34 +54,3 @@ func main() {
 func terminate(level int) {
 	os.Exit(level)
 }
-
-/*
-func myKafkaConnection() {
-	var myConfig Configuration
-
-	err := gonfig.GetConf("producer.json", &myConfig)
-	if err != nil {
-		log.Fatalf("%s", err)
-		terminate(1)
-	}
-
-	log.Infof("Connecting to %s, topic %s", myConfig.Brokers, myConfig.Topic)
-
-	w := kafka.NewWriter(kafka.WriterConfig{
-		Brokers:  myConfig.Brokers,
-		Topic:    myConfig.Topic,
-		Balancer: &kafka.LeastBytes{},
-	})
-
-	err = w.WriteMessages(context.Background(),
-		kafka.Message{
-			Key:   []byte("Test"),
-			Value: []byte("Value"),
-		},
-	)
-
-	if err != nil {
-		log.Errorf("%s", err)
-	}
-}
-*/
