@@ -1,0 +1,6 @@
+{
+	"Brokers": [ "localhost:9082" ],
+	"Topic": "topic-A",
+        "MaxWorker": 20,
+	"MaxQueue": 20
+}
