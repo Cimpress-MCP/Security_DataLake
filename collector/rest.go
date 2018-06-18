@@ -47,8 +47,6 @@ func (r *RestConnection) Write(s string) {
 		log.Fatalf("%v", err)
 	}
 
-	log.Infof("Sending %s : body : %s", r.fpURL, s)
-
 	ctx, cancel := context.WithTimeout(req.Context(), 3*time.Second)
 	defer cancel()
 
@@ -60,8 +58,6 @@ func (r *RestConnection) Write(s string) {
 		log.Infof("%v", err)
 		return
 	}
-
-	log.Infof("POST to %s produced code %v", r.fpURL, res.StatusCode)
 
 	r.msgTx.Inc(1)
 	r.bytesTx.Inc(int64(len(s)))

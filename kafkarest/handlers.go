@@ -100,5 +100,4 @@ func addMessageToQueue(msg datalakemsg.LogMessage, topic string) {
 	work := Job{Payload: payload}
 	spew.Dump(JobQueue)
 	JobQueue <- work
-	log.Infof("%s has been queued for topic %s", msg.Body, topic)
 }
