@@ -59,6 +59,10 @@ func (r *RestConnection) Write(s string) {
 		return
 	}
 
+	if res.StatusCode != http.StatusOK {
+		log.Infof("POST to %s returned %d - %s", r.fpURL, res.StatusCode, res.Status)
+	}
+
 	r.msgTx.Inc(1)
 	r.bytesTx.Inc(int64(len(s)))
 }
