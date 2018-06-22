@@ -1,16 +1,19 @@
 package main
 
+//Dispatcher - Structure for scheduling work to be done
 type Dispatcher struct {
 	// A pool of workers channels that are registered with the dispatcher
 	WorkerPool chan chan Job
 	maxWorkers int
 }
 
-func NewDispatcher(maxWorkers int) *Dispatcher {
+func newDispatcher(maxWorkers int) *Dispatcher {
 	pool := make(chan chan Job, maxWorkers)
 	return &Dispatcher{WorkerPool: pool, maxWorkers: maxWorkers}
 }
 
+// Run - Start the Dispatcher threads and get ready to dispatch messages
+// as they come in.
 func (d *Dispatcher) Run() {
 	// starting n number of workers
 	for i := 0; i < d.maxWorkers; i++ {

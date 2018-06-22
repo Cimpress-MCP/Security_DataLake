@@ -1,5 +1,6 @@
 {
-	"Brokers": [ "localhost:9082" ],
+	"HTTPListenPort": "8080",
+	"Brokers": [ "localhost:9092" ],
 	"Topic": "topic-A",
         "MaxWorker": 20,
 	"MaxQueue": 20

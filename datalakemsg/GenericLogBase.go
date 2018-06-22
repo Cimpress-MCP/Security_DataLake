@@ -7,7 +7,7 @@ import (
 // base - base class used to provide Pack and Unpack methods
 // private type used for inheritance
 type base struct {
-	Type    string      `json:"$type"`
+	Type    string      `json:"type"`
 	Version string      `json:"version"`
 	selfP   interface{} // stores a pointer to the actual pack function
 }

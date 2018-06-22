@@ -16,6 +16,8 @@ type Worker struct {
 	quit       chan bool
 }
 
+// NewWorker - return a new worker for the current job with
+// channels configured.
 func NewWorker(workerPool chan chan Job) Worker {
 	return Worker{
 		WorkerPool: workerPool,

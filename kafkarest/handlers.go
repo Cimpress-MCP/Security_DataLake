@@ -9,20 +9,18 @@ import (
 	"time"
 
 	"github.com/apex/log"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/mux"
 	"github.com/satori/go.uuid"
 
 	"data-lake/datalakemsg"
 )
 
-type LogPostResponse struct {
-	ID      string `json:"id"`
-	Channel string `json:"channel"`
+type postResponse struct {
+	ID string `json:"id"`
 }
 
-func PostV1Syslog(w http.ResponseWriter, r *http.Request) {
-
+// post incoming syslog message to incoming kafka channel
+func postV1Syslog(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -60,11 +58,15 @@ func PostV1Syslog(w http.ResponseWriter, r *http.Request) {
 		msg.TimeStamp = now.Format(time.RFC822)
 	}
 
+	// launch go thread to post message to incoming kafka channel
 	go addMessageToQueue(msg, "incoming-v1-syslog")
+
+	response := postResponse{ID: msg.ID}
+	json.NewEncoder(w).Encode(&response)
 	w.WriteHeader(http.StatusOK)
 }
 
-func PostV1SyslogChannel(w http.ResponseWriter, r *http.Request) {
+func postV1SyslogChannel(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
@@ -98,6 +100,5 @@ func addMessageToQueue(msg datalakemsg.LogMessage, topic string) {
 	payload := Payload{Topic: topic, Message: msg}
 
 	work := Job{Payload: payload}
-	spew.Dump(JobQueue)
 	JobQueue <- work
 }
