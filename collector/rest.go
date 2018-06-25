@@ -19,19 +19,25 @@ type RestConnection struct {
 	registry metrics.Registry
 	msgTx    metrics.Counter
 	bytesTx  metrics.Counter
+	errorTx  metrics.Counter
+
+	IsTransmitting bool
 }
 
 // NewRestConnection - returns a connection object to be used for later write calls
 func NewRestConnection(httpURL string) (*RestConnection, error) {
 	connect := &RestConnection{
-		fpURL:    httpURL,
-		registry: metrics.NewRegistry(),
-		msgTx:    metrics.NewCounter(),
-		bytesTx:  metrics.NewCounter(),
+		fpURL:          httpURL,
+		registry:       metrics.NewRegistry(),
+		msgTx:          metrics.NewCounter(),
+		bytesTx:        metrics.NewCounter(),
+		errorTx:        metrics.NewCounter(),
+		IsTransmitting: false,
 	}
 
 	connect.registry.Register("messages.transmitted", connect.msgTx)
-	connect.registry.Register("message.bytes.transferred", connect.bytesTx)
+	connect.registry.Register("messages.bytes.transferred", connect.bytesTx)
+	connect.registry.Register("messages.errors", connect.errorTx)
 
 	return connect, nil
 }
@@ -56,6 +62,8 @@ func (r *RestConnection) Write(s string) {
 	res, err := client.Do(req)
 	if err != nil {
 		log.Infof("%v", err)
+		r.errorTx.Inc(1)
+		r.IsTransmitting = false
 		return
 	}
 
@@ -65,6 +73,8 @@ func (r *RestConnection) Write(s string) {
 
 	r.msgTx.Inc(1)
 	r.bytesTx.Inc(int64(len(s)))
+
+	r.IsTransmitting = true
 }
 
 //Statistics - return current statistics of this connection

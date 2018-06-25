@@ -7,6 +7,7 @@ import (
 
 	"github.com/apex/httplog"
 	"github.com/apex/log"
+	"github.com/gorilla/mux"
 	"github.com/tkanos/gonfig"
 )
 
@@ -44,12 +45,13 @@ func main() {
 	dispatcher := newDispatcher(MyConfig.MaxWorker)
 	dispatcher.Run()
 
-	mux := http.NewServeMux()
-	mux.Handle("/v1/syslog", http.HandlerFunc(postV1Syslog))
-	mux.Handle("/v1/syslog/{channel}", http.HandlerFunc(postV1SyslogChannel))
+	r := mux.NewRouter()
+
+	r.HandleFunc("/v1/syslog", http.HandlerFunc(postV1Syslog))
+	r.HandleFunc("/v1/syslog/{channel}", http.HandlerFunc(postV1SyslogChannel))
 
 	listenPort := fmt.Sprintf(":%s", MyConfig.HTTPListenPort)
-	err = http.ListenAndServe(listenPort, httplog.New(mux))
+	err = http.ListenAndServe(listenPort, httplog.New(r))
 	if err != nil {
 		log.Fatalf("%s", err)
 	}
