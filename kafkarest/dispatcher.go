@@ -1,15 +1,35 @@
 package main
 
+import (
+	"github.com/rcrowley/go-metrics"
+)
+
 //Dispatcher - Structure for scheduling work to be done
 type Dispatcher struct {
 	// A pool of workers channels that are registered with the dispatcher
 	WorkerPool chan chan Job
 	maxWorkers int
+
+	registry       metrics.Registry
+	jobsDispatched metrics.Counter
 }
 
 func newDispatcher(maxWorkers int) *Dispatcher {
-	pool := make(chan chan Job, maxWorkers)
-	return &Dispatcher{WorkerPool: pool, maxWorkers: maxWorkers}
+	d := &Dispatcher{}
+
+	d.WorkerPool = make(chan chan Job, maxWorkers)
+	d.maxWorkers = maxWorkers
+
+	d.registry = metrics.NewRegistry()
+	d.jobsDispatched = metrics.NewCounter()
+	d.registry.Register("jobs.dispatched", d.jobsDispatched)
+
+	return d
+}
+
+// Statistics - return current statistics for this dispatcher
+func (d *Dispatcher) Statistics() (metrics.Registry, error) {
+	return d.registry, nil
 }
 
 // Run - Start the Dispatcher threads and get ready to dispatch messages
@@ -33,6 +53,8 @@ func (d *Dispatcher) dispatch() {
 				// try to obtain a worker job channel that is available.
 				// this will block until a worker is idle
 				jobChannel := <-d.WorkerPool
+
+				d.jobsDispatched.Inc(1)
 
 				// dispatch the job to the worker job channel
 				jobChannel <- job

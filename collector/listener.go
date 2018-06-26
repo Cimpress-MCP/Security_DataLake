@@ -1,7 +1,10 @@
 package main
 
 import (
+	"data-lake/collector/input"
+	"data-lake/collector/rest"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 	"time"
@@ -12,10 +15,10 @@ import (
 )
 
 //application resources
-var tcpServer *TcpServer
-var udpServer *UdpServer
-var parser *Rfc5424Parser
-var producer *RestConnection
+var tcpServer *input.TcpServer
+var udpServer *input.UdpServer
+var parser *input.Rfc5424Parser
+var producer *rest.RestConnection
 
 //Diagnostic data
 var startTime time.Time
@@ -97,6 +100,8 @@ func servHealthCheck(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
+
+	fmt.Fprintf(w, "Health check passed successfully.")
 }
 
 func main() {
@@ -114,14 +119,14 @@ func main() {
 	rawChan := make(chan string, cCapacity)
 	prodChan := make(chan string, cCapacity)
 
-	parser = NewRfc5424Parser()
+	parser = input.NewRfc5424Parser()
 
 	// send the raw input channel through the parser.
 	// JSON parsed output is to prodChan
 	prodChan, err = parser.StreamingParse(rawChan)
 
 	// start tcp interface and hook it to the raw input channel
-	tcpServer = NewTcpServer(myConfig.ConnTcpPort)
+	tcpServer = input.NewTcpServer(myConfig.ConnTcpPort)
 	err = tcpServer.Start(func() chan<- string {
 		return rawChan
 	})
@@ -132,7 +137,7 @@ func main() {
 	log.Infof("listening to TCP connections on port %s", myConfig.ConnTcpPort)
 
 	// start UDP server
-	udpServer = NewUdpServer(myConfig.ConnUdpPort)
+	udpServer = input.NewUdpServer(myConfig.ConnUdpPort)
 	err = udpServer.Start(func() chan<- string {
 		return rawChan
 	})
@@ -142,9 +147,8 @@ func main() {
 	}
 	log.Infof("listening to UDP connections on port %s", myConfig.ConnUdpPort)
 
-	// start up statistics http service
+	// start up statistics and healthcheck http service
 	http.HandleFunc("/statistics", servStatistics)
-	//	http.HandleFunc("/diagnostics", servDiagnostics)
 	http.HandleFunc("/healthcheck", servHealthCheck)
 
 	// spawn thread to handle stats http requests
@@ -156,9 +160,9 @@ func main() {
 	}()
 	log.Infof("Admin interface started on %s", myConfig.AdminPort)
 
-	producer, err = NewRestConnection(myConfig.RestURL)
+	producer, err = rest.NewRestConnection(myConfig.RestURL)
 
-	for {
+	for { // send anything that comes in from the incoming producer channel to our REST producer
 		producer.Write(<-prodChan)
 	}
 }
